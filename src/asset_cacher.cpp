@@ -240,7 +240,7 @@ void AssetCacher::ImportNewData()
 
     std::cout << "**Reading asset files\n";
 
-    /* Non-zero size of assets_ can come only from 
+    /* Non-zero size of assets_ can arise only from 
     assets picked from the source .dat file with 
     incremental generation. */
     ProgressBar bar(n_assets_ - assets_.size());

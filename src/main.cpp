@@ -1,30 +1,30 @@
 #include "asset_cacher.h"
-#include "settings.h"
+#include "config.h"
 
-static Settings<char> settings;
+static Config<char> config;
 
 int main()
 {
-    settings.Read();
-    settings.Set();
-    settings.Save();
+    config.Read();
+    config.Set();
+    config.Save();
 	
     AssetCacher asset_cacher;
     
-    if (settings.incremental)
+    if (config.incremental)
     {
         asset_cacher.ImportExistData();
     }
     
     asset_cacher.ImportNewData();
 
-    switch (settings.input_policy)
+    switch (config.input_policy)
     {
-    case Settings<char>::InputPolicy::Informative:
+    case Config<char>::InputPolicy::Informative:
         asset_cacher.ValidateInputs();
         break;
     
-    case Settings<char>::InputPolicy::Pedantic:
+    case Config<char>::InputPolicy::Pedantic:
         asset_cacher.FilterInputs();
         break;
     

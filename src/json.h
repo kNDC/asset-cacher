@@ -1,8 +1,9 @@
 #pragma once
 
 // IO, strings
-#include <iostream>
+#include <cwctype>
 #include <cstring>
+#include <iostream>
 #include <string>
 
 // Collections
@@ -29,11 +30,11 @@ namespace json
     template <typename T>
     struct CN_Less
     {
-        bool operator()(std::basic_string_view<T> sv1, 
-                        std::basic_string_view<T> sv2) const
+        bool operator()(std::basic_string_view<T> sv1,
+            std::basic_string_view<T> sv2) const
         {
             size_t min_size = (sv1.size() < sv2.size()) ? sv1.size() : sv2.size();
-            
+
             for (size_t i = 0; i < min_size; ++i)
             {
                 T c1 = std::towlower(sv1[i]);
@@ -48,7 +49,7 @@ namespace json
     };
 
     template <typename T>
-    using Dict = std::map<std::basic_string<T>, Node<T>, 
+    using Dict = std::map<std::basic_string<T>, Node<T>,
         CN_Less<T>>;
 
     // Ошибка разбора json
@@ -113,7 +114,8 @@ namespace json
             PrintContext(std::basic_ostream<T>& os, size_t indent_count = 0) :
                 os(os),
                 indent_count(indent_count)
-            {}
+            {
+            }
         };
 
         struct ValuePrinter
@@ -196,14 +198,14 @@ namespace json
         operator int() const { return AsInt(); }
         operator double() const { return AsDouble(); }
 
-        operator std::basic_string<T>&() { return AsString(); }
-        operator const std::basic_string<T>&() const { return AsString(); }
+        operator std::basic_string<T>& () { return AsString(); }
+        operator const std::basic_string<T>& () const { return AsString(); }
 
-        operator Array<T>&() { return AsArray(); }
-        operator const Array<T>&() const { return AsArray(); }
+        operator Array<T>& () { return AsArray(); }
+        operator const Array<T>& () const { return AsArray(); }
 
-        operator Dict<T>&() { return AsMap(); }
-        operator const Dict<T>&() const { AsMap(); }
+        operator Dict<T>& () { return AsMap(); }
+        operator const Dict<T>& () const { AsMap(); }
 
         void Swap(Node& other);
 
@@ -235,9 +237,9 @@ namespace json
     };
 
     template <typename T>
-    std::basic_string<T> Convert(const char* cs)
+    std::basic_string<T> Convert(const char* chars)
     {
-        return { &cs[0], &cs[strlen(cs)] };
+        return { chars, chars + strlen(chars) };
     }
 
     template <typename T>
@@ -245,10 +247,10 @@ namespace json
     {
         using CharType = typename std::char_traits<T>::char_type;
 
-        return (c == (CharType)EOF) || 
-            (c == '\r') || (c == '\n') || 
-            (c == '\t') || (c == ' ') || 
-            (c == ']') || (c == '}') || 
+        return (c == (CharType)EOF) ||
+            (c == '\r') || (c == '\n') ||
+            (c == '\t') || (c == ' ') ||
+            (c == ']') || (c == '}') ||
             (c == ':') || (c == ',');
     }
 
@@ -258,7 +260,7 @@ namespace json
         using CharType = typename std::char_traits<T>::char_type;
 
         CharType c;
-        while (c = is.peek(), 
+        while (c = is.peek(),
             (c == '\r') || (c == '\n') ||
             (c == '\t') || (c == ' ')) is.get();
     }
@@ -273,16 +275,16 @@ namespace json
         pc.os << "[\n";
         ++pc.indent_count;
 
-        std::basic_string_view<T> sep;
+        std::basic_string<T> sep;
 
         for (const Node& node : array)
         {
-            AddIndentation(sep); sep = Convert<T>(",\n");
+            AddIndentation(sep); sep = Convert<T>(",\r\n");
             node.Print({ {pc.os, pc.indent_count} });
         }
 
         --pc.indent_count;
-        AddIndentation(Convert<T>("\n"), Convert<T>("]"));
+        AddIndentation(Convert<T>("\r\n"), Convert<T>("]"));
     }
 
     // Печать словарей
@@ -296,13 +298,13 @@ namespace json
 
         for (const std::pair<const std::basic_string<T>, Node>& pair : map)
         {
-            AddIndentation(sep); sep = Convert<T>(",\n");
+            AddIndentation(sep); sep = Convert<T>(",\r\n");
             operator()(pair.first);
             pc.os << ": "; pair.second.Print({ {pc.os, pc.indent_count} });
         }
 
         --pc.indent_count;
-        AddIndentation(Convert<T>("\n"), Convert<T>("}"));
+        AddIndentation(Convert<T>("\r\n"), Convert<T>("}"));
     }
 
     template <typename T>
@@ -429,7 +431,7 @@ namespace json
     {
         if (this == &other) return true;
         if (this->index() != other.index()) return false;
-        return (const Value<T>&)*this == (const Value<T>&)other;
+        return (const Value<T>&) * this == (const Value<T>&)other;
     }
 
     template <typename T>
@@ -509,7 +511,7 @@ namespace json
             (buffer[2] != 's')))
         {
             // Отсекаем приколы вроде falsefalse
-            if (is.get() == 'e' && 
+            if (is.get() == 'e' &&
                 CheckIfNoSuffix<T>(is.peek()))
             {
                 return Node<T>(false);
@@ -687,7 +689,7 @@ namespace json
                     break;
                 default:
                     // Встретили неизвестную escape-последовательность
-                    throw parsing_error("Unrecognized escape sequence \\" + escaped_char);
+                    throw parsing_error("Unrecognised escape sequence \\" + escaped_char);
                 }
             }
             else if (c == '\n' || c == '\r')
@@ -713,8 +715,8 @@ namespace json
         Array<T> array;
         CharType c = is.peek();
 
-        for (; !(c == ']' || c == (CharType)EOF); 
-             c = is.peek())
+        for (; !(c == ']' || c == (CharType)EOF);
+            c = is.peek())
         {
             // Пропускаем запятую
             if (c == ',') is.get();
@@ -811,7 +813,8 @@ namespace json
     template <typename T>
     Document<T>::Document(Node<T> root) :
         root_(std::move(root))
-    {}
+    {
+    }
 
     template <typename T>
     Node<T>& Document<T>::GetRoot()
