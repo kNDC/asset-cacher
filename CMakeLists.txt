@@ -15,10 +15,6 @@ message("C++ compiler Id: ${CMAKE_CXX_COMPILER_ID}")
 message("C++ compiler version: ${CMAKE_CXX_COMPILER_VERSION}")
 message("CMake version: ${CMAKE_VERSION}")
 
-message(STATUS "Flags for Debug: ${CMAKE_CXX_FLAGS_DEBUG}")
-message(STATUS "Flags for Release: ${CMAKE_CXX_FLAGS_RELEASE}")
-message(STATUS "Flags for MinSizeRel: ${CMAKE_CXX_FLAGS_MINSIZEREL}")
-
 # To maximise portability, non-Debug versions are linked statically to 
 # the standard library.
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU") # MinGW
